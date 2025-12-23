@@ -326,9 +326,6 @@ footer {
     .menu-scroll {
         /* 스크롤바 숨김 */
         scrollbar-width: none; 
-        
-        /* [핵심] 하단 패딩 제거 (공백 삭제) */
-        /* 그림자가 살짝 있으므로 2px만 남김 (완전 0이면 그림자 잘림) */
         padding-bottom: 0px; 
     }
     
@@ -343,10 +340,6 @@ footer {
 
     .message-row {
         padding: 0 15px; 
-    }
-
-    .msg-column {
-        max-width: 70%; 
     }
     
     .manito-card-img {
