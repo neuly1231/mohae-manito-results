@@ -2,10 +2,28 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('data.json')
         .then(response => response.json())
         .then(data => {
-            renderChat(data);
+            renderMenu(data); // 메뉴 생성 함수 호출
+            renderChat(data); // 채팅방 생성 함수 호출
         })
         .catch(error => console.error('Error loading data:', error));
 });
+
+// [추가됨] 상단 메뉴 생성 함수
+function renderMenu(data) {
+    const menuContainer = document.getElementById('menu-container');
+    
+    // 1. 데이터에서 받는 사람 이름만 추출해서 가나다순 정렬
+    // 원본 데이터 순서는 유지하고, 메뉴만 정렬해서 보여줍니다.
+    const sortedNames = data.map(item => item.receiver).sort((a, b) => a.localeCompare(b, 'ko'));
+
+    sortedNames.forEach(name => {
+        const link = document.createElement('a');
+        link.className = 'menu-item';
+        link.innerText = name;
+        link.href = `#target-${name}`; // 앵커 링크 생성
+        menuContainer.appendChild(link);
+    });
+}
 
 function renderChat(data) {
     const app = document.getElementById('app');
@@ -13,6 +31,9 @@ function renderChat(data) {
     data.forEach(group => {
         const section = document.createElement('div');
         section.className = 'chat-section';
+        
+        // [추가됨] 앵커 이동을 위한 ID 부여
+        section.id = `target-${group.receiver}`;
 
         // 헤더
         const header = document.createElement('div');
@@ -42,9 +63,9 @@ function renderChat(data) {
                 const isReceiver = (msg.sender === 'receiver');
                 row.className = `message-row ${isReceiver ? 'receiver' : 'manito'}`;
                 
-                // 1. 데이터 준비 (이름, 사진)
+                // 1. 데이터 준비
                 let displayName = '';
-                let displayIcon = ''; // 🎁 아이콘
+                let displayIcon = ''; 
                 let profileContent = '';
 
                 if (isReceiver) {
@@ -59,29 +80,26 @@ function renderChat(data) {
                     }
                 }
 
-                // 사진 태그 생성
                 if (displayName && displayName !== '마니또') {
                     profileContent = `<img src="src/profile/${displayName}.jpg" alt="${displayName}" onerror="this.parentNode.innerText='🎁'">`;
                 } else {
                     profileContent = displayIcon || '🎁';
                 }
 
-                // 2. 아바타(사진) 요소 생성
+                // 2. 아바타
                 const avatarDiv = document.createElement('div');
                 avatarDiv.className = 'avatar';
                 avatarDiv.innerHTML = profileContent;
 
-                // 3. 메시지 컬럼(이름 + 말풍선) 생성
+                // 3. 메시지 컬럼
                 const msgColumn = document.createElement('div');
                 msgColumn.className = 'msg-column';
 
-                // (3-1) 이름 추가
                 const nameDiv = document.createElement('div');
                 nameDiv.className = 'user-name';
                 nameDiv.innerText = displayName;
                 msgColumn.appendChild(nameDiv);
 
-                // (3-2) 말풍선 래퍼 추가
                 const contentWrapper = document.createElement('div');
                 contentWrapper.className = 'msg-content-wrapper';
 
@@ -100,13 +118,11 @@ function renderChat(data) {
                 }
                 msgColumn.appendChild(contentWrapper);
 
-                // 4. 배치 (왼쪽/오른쪽)
+                // 4. 배치
                 if (isReceiver) {
-                    // 받는 사람: [메시지기둥] [아바타]
                     row.appendChild(msgColumn);
                     row.appendChild(avatarDiv);
                 } else {
-                    // 보낸 사람: [아바타] [메시지기둥]
                     row.appendChild(avatarDiv);
                     row.appendChild(msgColumn);
                 }
