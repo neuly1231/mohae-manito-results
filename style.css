@@ -32,12 +32,28 @@ body {
     position: relative;
 }
 
+/* === 헤더 스타일 (수정됨) === */
+header {
+    background-color: rgba(255, 255, 255, 0.98); /* 거의 불투명하게 변경 */
+    text-align: center;
+    padding: 0; /* 패딩 제거 (내부에서 제어) */
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
 /* === 헤더 === */
 header {
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.98); /* 거의 불투명하게 변경 */
     text-align: center;
-    padding: 20px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding-top: 20px; /* 상단 여백 */
+    padding-bottom: 0; /* 하단 여백 제거 (메뉴가 차지함) */
+    border-bottom: 1px solid rgba(0,0,0,0.1);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -57,13 +73,91 @@ header h1 {
 header p {
     font-size: 0.9rem;
     color: #888;
-    margin: 5px 0 0;
+    margin: -10px 0 20px 0; /* 아래쪽 여백 추가 */
 }
 
-/* === 채팅 섹션 === */
+/* === 상단 바로가기 메뉴 === */
+.shortcut-area {
+    width: 100%;
+    /* [요청하신 구분선] 상단 테두리 추가 */
+    border-top: 1px solid #eee; 
+    padding-top: 10px;
+    padding-bottom: 2px;
+    background-color: #fff; /* 메뉴 배경색 확보 */
+}
+
+/* 가로 스크롤 컨테이너 */
+.menu-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto; /* 가로 스크롤 허용 */
+    padding: 0 20px 10px 20px; /* 하단 패딩을 늘려 스크롤바와 버튼 사이 간격 확보 */
+    width: 100%;
+    box-sizing: border-box;
+    
+    /* 모바일 부드러운 스크롤 */
+    -webkit-overflow-scrolling: touch; 
+}
+
+/* === [수정] PC 스크롤바 디자인 (숨기지 않고 예쁘게 표시) === */
+
+/* 크롬, 사파리, 엣지용 스크롤바 스타일 */
+.menu-scroll::-webkit-scrollbar {
+    height: 6px; /* 스크롤바 높이 (얇게) */
+}
+
+.menu-scroll::-webkit-scrollbar-track {
+    background: transparent; /* 트랙 배경 투명 */
+    margin: 0 20px; /* 양쪽 끝 여백 */
+}
+
+.menu-scroll::-webkit-scrollbar-thumb {
+    background-color: #ddd; /* 스크롤바 색상 (연한 회색) */
+    border-radius: 10px;    /* 둥글게 */
+    cursor: pointer;
+}
+
+.menu-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: #ccc; /* 호버 시 조금 진하게 */
+}
+
+/* 파이어폭스용 */
+.menu-scroll {
+    scrollbar-width: thin; /* 얇게 */
+    scrollbar-color: #ddd transparent;
+}
+
+/* 메뉴 버튼 */
+.menu-item {
+    background-color: #fff;
+    border: 1px solid var(--point-color);
+    color: #555;
+    padding: 8px 16px; /* 터치하기 좋게 크기 키움 */
+    border-radius: 20px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    white-space: nowrap; /* 글자 줄바꿈 금지 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+
+    /* [핵심] 버튼이 찌그러지지 않도록 고정 */
+    flex-shrink: 0; 
+}
+
+.menu-item:hover, .menu-item:active {
+    background-color: var(--point-color);
+    color: #333;
+    font-weight: bold;
+    border-color: var(--point-color);
+}
+
+/* === [수정] 채팅 섹션 (헤더에 가려짐 방지) === */
 .chat-section {
     border-bottom: 1px solid rgba(0,0,0,0.05);
     padding-bottom: 40px;
+    
+    /* [핵심] 앵커 이동 시 헤더 높이만큼 띄우고 이동 */
+    scroll-margin-top: 180px; 
 }
 
 /* === 카드 공개 헤더 === */
@@ -255,6 +349,7 @@ footer {
         padding: 0 15px; 
     }
 
+    /* [수정] 모바일에서는 말풍선(기둥) 너비 제한을 좀 더 틉니다 */
     .msg-column {
         max-width: 75%; 
     }
@@ -267,4 +362,3 @@ footer {
         font-size: 1.4rem;
     }
 }
-
