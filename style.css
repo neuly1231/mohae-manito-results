@@ -164,15 +164,19 @@ header p {
 .manito .msg-content-wrapper { align-items: flex-start; }
 .receiver .msg-content-wrapper { align-items: flex-end; }
 
-/* === 말풍선 공통 === */
+/* === 말풍선 공통 디자인 (수정됨) === */
 .bubble {
     font-size: 0.9rem;
     position: relative;
     line-height: 1.6;
-    max-width: 100%; 
-    white-space: pre-wrap;
-    word-break: break-all;
-    overflow-wrap: anywhere;
+    max-width: 100%;
+    
+    /* [핵심 수정] 한국어 줄바꿈 최적화 */
+    /* 단어 단위로 끊기 (예: '꺼지라고쫌'이 한 덩어리로 유지됨) */
+    word-break: keep-all; 
+    
+    /* ㅋㅋㅋㅋㅋㅋㅋㅋ 같이 긴 문자열이나 URL은 강제로 줄바꿈 허용 */
+    overflow-wrap: anywhere; 
 }
 
 /* 텍스트 말풍선 */
@@ -233,12 +237,34 @@ footer {
     border-top: 1px solid rgba(0,0,0,0.05);
 }
 
-/* 모바일 */
+/* =========================================================
+   [반응형 미디어 쿼리] 
+   ========================================================= */
 @media (max-width: 768px) {
-    #app { width: 100%; max-width: 100%; box-shadow: none; }
-    header { padding: 15px 0; }
-    .message-row { padding: 0 15px; }
-    .msg-content-wrapper { max-width: 80%; }
-    .manito-card-img { max-width: 200px; }
-    .receiver-name { font-size: 1.4rem; }
+    #app {
+        width: 100%;
+        max-width: 100%;
+        box-shadow: none;
+    }
+
+    header {
+        padding: 15px 0;
+    }
+
+    .message-row {
+        padding: 0 15px; 
+    }
+
+    /* [수정] 모바일에서는 말풍선(기둥) 너비 제한을 좀 더 틉니다 */
+    .msg-column {
+        max-width: 85%; 
+    }
+    
+    .manito-card-img {
+        max-width: 200px;
+    }
+
+    .receiver-name {
+        font-size: 1.4rem;
+    }
 }
