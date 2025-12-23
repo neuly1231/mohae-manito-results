@@ -255,9 +255,8 @@ footer {
         padding: 0 15px; 
     }
 
-    /* [수정] 모바일에서는 말풍선(기둥) 너비 제한을 좀 더 틉니다 */
     .msg-column {
-        max-width: 85%; 
+        max-width: 75%; 
     }
     
     .manito-card-img {
@@ -268,3 +267,4 @@ footer {
         font-size: 1.4rem;
     }
 }
+
