@@ -86,56 +86,6 @@ header p {
     background-color: #fff; /* 메뉴 배경색 확보 */
 }
 
-/* 가로 스크롤 컨테이너 */
-.menu-scroll {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto; /* 가로 스크롤 허용 */
-    padding: 0 20px 10px 20px; /* 하단 패딩 (스크롤바 공간) */
-    width: 100%;
-    box-sizing: border-box;
-    -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
-    
-    /* 파이어폭스 PC용 (얇게) */
-    scrollbar-width: thin; 
-    scrollbar-color: #ddd transparent;
-}
-
-/* === PC용 스크롤바 디자인 (기본적으로 보임) === */
-.menu-scroll::-webkit-scrollbar {
-    height: 6px; /* 얇은 스크롤바 */
-}
-
-.menu-scroll::-webkit-scrollbar-track {
-    background: transparent;
-    margin: 0 20px;
-}
-
-.menu-scroll::-webkit-scrollbar-thumb {
-    background-color: #e0e0e0;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.menu-scroll::-webkit-scrollbar-thumb:hover {
-    background-color: #ccc;
-}
-
-/* === [핵심] 모바일 전용 (스크롤바 숨김) === */
-@media (max-width: 768px) {
-    .menu-scroll {
-        /* 파이어폭스 모바일 숨김 */
-        scrollbar-width: none; 
-        /* 패딩 조정 (스크롤바가 없으니 하단 여백 줄임) */
-        padding-bottom: 5px; 
-    }
-    
-    /* 크롬, 사파리, 삼성인터넷 모바일 숨김 */
-    .menu-scroll::-webkit-scrollbar {
-        display: none; 
-    }
-}
-
 /* 메뉴 버튼 */
 .menu-item {
     background-color: #fff;
@@ -323,7 +273,7 @@ header p {
     color: #fff;
     padding: 6px 16px;
     border-radius: 20px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     text-align: center;
     max-width: 80%;
     line-height: 1.4;
@@ -334,11 +284,44 @@ footer {
     text-align: center;
     padding: 20px 0;
     color: #999;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-family: var(--font-title);
     background-color: transparent;
     border-top: 1px solid rgba(0,0,0,0.05);
 }
+
+/* 가로 스크롤 컨테이너 (PC 기본 설정) */
+.menu-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    /* PC: 하단 12px (스크롤바 들어갈 자리 확보) */
+    padding: 0 20px 12px 20px; 
+    width: 100%;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+    
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+}
+
+/* PC용 스크롤바 디자인 */
+.menu-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+.menu-scroll::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 0 20px;
+}
+.menu-scroll::-webkit-scrollbar-thumb {
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.menu-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: #ccc;
+}
+
 
 /* =========================================================
    [반응형 미디어 쿼리] 
@@ -351,16 +334,34 @@ footer {
     }
 
     header {
-        padding: 15px 0;
+        padding: 10px 0;
+    }
+
+    /* [수정] 모바일 메뉴 스크롤 최적화 */
+    .menu-scroll {
+        /* 스크롤바 숨김 */
+        scrollbar-width: none; 
+        
+        /* [핵심] 하단 패딩 제거 (공백 삭제) */
+        /* 그림자가 살짝 있으므로 2px만 남김 (완전 0이면 그림자 잘림) */
+        padding-bottom: 0px; 
+    }
+    
+    .menu-scroll::-webkit-scrollbar {
+        display: none; 
+    }
+
+    /* 상단 메뉴 영역 전체의 여백도 살짝 줄여서 더 콤팩트하게 */
+    .shortcut-area {
+        padding-bottom: 0px; /* 기존 15px -> 10px */
     }
 
     .message-row {
         padding: 0 15px; 
     }
 
-    /* [수정] 모바일에서는 말풍선(기둥) 너비 제한을 좀 더 틉니다 */
     .msg-column {
-        max-width: 75%; 
+        max-width: 85%; 
     }
     
     .manito-card-img {
