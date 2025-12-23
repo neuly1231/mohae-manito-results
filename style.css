@@ -1,0 +1,244 @@
+:root {
+    --bg-color: #bacee0;   
+    --pc-bg: #e6e6e6;      
+    --point-color: #F3E1EB;
+    --my-bubble: #F3E1EB;  
+    --other-bubble: #ffffff; 
+    --font-title: 'Cafe24ClassicType', sans-serif;
+    --font-body: 'NanumMyeongjo', serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    background-color: var(--pc-bg);
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* === 메인 컨테이너 === */
+#app {
+    width: 100%;
+    max-width: 900px; 
+    margin: 0 auto;
+    background-color: var(--bg-color);
+    min-height: 100vh;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    padding-bottom: 80px;
+    position: relative;
+}
+
+/* === 헤더 === */
+header {
+    background-color: rgba(255, 255, 255, 0.95);
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    width: 100%;
+    max-width: 900px; 
+    margin: 0 auto;
+}
+
+header h1 {
+    font-family: var(--font-title);
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+header p {
+    font-size: 0.9rem;
+    color: #888;
+    margin: 5px 0 0;
+}
+
+/* === 채팅 섹션 === */
+.chat-section {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding-bottom: 40px;
+}
+
+/* === 카드 공개 헤더 === */
+.section-header {
+    background-color: transparent;
+    padding: 50px 20px 30px 20px;
+    text-align: center;
+}
+
+.receiver-name {
+    font-family: var(--font-title);
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    display: block;
+    color: #444;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+
+.manito-card-img {
+    width: 100%;
+    max-width: 250px; 
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+}
+.manito-card-img:hover {
+    transform: translateY(-5px); 
+}
+
+/* === 메시지 로우 === */
+.message-row {
+    display: flex;
+    padding: 0 20px; 
+    margin-bottom: 12px; 
+    align-items: flex-start; /* 상단 정렬 */
+}
+
+.message-row.manito { justify-content: flex-start; }
+.message-row.receiver { justify-content: flex-end; }
+.message-row.note { justify-content: center; margin: 30px 0; }
+
+/* === 아바타 (프로필 사진만 담당) === */
+.avatar {
+    width: 45px;
+    height: 45px;
+    background-color: #fff;
+    border-radius: 18px; /* 둥근 사각형 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem; /* 🎁 아이콘 크기 */
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    flex-shrink: 0; /* 찌그러짐 방지 */
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 아바타 여백 설정 */
+.manito .avatar { margin-right: 10px; }
+.receiver .avatar { margin-left: 10px; }
+
+
+/* === 메시지 컬럼 (이름 + 말풍선들을 감싸는 기둥) === */
+.msg-column {
+    display: flex;
+    flex-direction: column;
+    max-width: 75%; /* 말풍선 최대 너비 제한을 여기서 담당 */
+}
+
+.manito .msg-column { align-items: flex-start; }  /* 왼쪽 정렬 */
+.receiver .msg-column { align-items: flex-end; } /* 오른쪽 정렬 */
+
+
+/* === 유저 이름 (굵기 강제 적용) === */
+.user-name {
+    font-size: 0.8rem;
+    color: #444; /* 색상을 살짝 더 진하게 변경 */
+    margin-bottom: 5px;
+    margin-top: 2px;
+    
+    /* 폰트 파일에 Bold가 없어도 강제로 굵게 만드는 마법의 코드 */
+    font-weight: bold; 
+    text-shadow: 0.2px 0 0 currentColor, -0.2px 0 0 currentColor;
+}
+
+/* === 메시지 내용 래퍼 (말풍선들만 감쌈) === */
+.msg-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px; 
+    width: fit-content;
+}
+.manito .msg-content-wrapper { align-items: flex-start; }
+.receiver .msg-content-wrapper { align-items: flex-end; }
+
+/* === 말풍선 공통 === */
+.bubble {
+    font-size: 0.9rem;
+    position: relative;
+    line-height: 1.6;
+    max-width: 100%; 
+    white-space: pre-wrap;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+}
+
+/* 텍스트 말풍선 */
+.text-bubble {
+    padding: 12px 18px;
+    border-radius: 18px; 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+.manito .text-bubble { background-color: var(--other-bubble); color: #333; border-top-left-radius: 4px; }
+.receiver .text-bubble { background-color: var(--my-bubble); color: #333; border-top-right-radius: 4px; }
+
+/* 이미지 말풍선 */
+.image-bubble {
+    padding: 0;
+    background-color: transparent;
+    box-shadow: none;
+    border-radius: 16px;
+    overflow: hidden;
+}
+.manito .image-bubble { border-top-left-radius: 4px; }
+.receiver .image-bubble { border-top-right-radius: 4px; }
+
+/* 이미지 첨부 */
+.attach-img {
+    display: block;
+    width: 280px;       
+    max-width: 100%;    
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+    object-position: top;
+    border-radius: inherit; 
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    margin: 0;
+}
+
+/* 시스템 메시지 */
+.system-message {
+    background-color: rgba(0,0,0,0.1);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    text-align: center;
+    max-width: 80%;
+    line-height: 1.4;
+}
+
+/* 푸터 */
+footer {
+    text-align: center;
+    padding: 20px 0;
+    color: #999;
+    font-size: 0.85rem;
+    font-family: var(--font-title);
+    background-color: transparent;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+/* 모바일 */
+@media (max-width: 768px) {
+    #app { width: 100%; max-width: 100%; box-shadow: none; }
+    header { padding: 15px 0; }
+    .message-row { padding: 0 15px; }
+    .msg-content-wrapper { max-width: 80%; }
+    .manito-card-img { max-width: 200px; }
+    .receiver-name { font-size: 1.4rem; }
+}
