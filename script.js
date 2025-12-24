@@ -116,15 +116,43 @@ function renderChat(data) {
 
         // 메시지 로직
         const processedMessages = [];
+        
+        // 파일명에서 _숫자.확장자 를 제거하여 그룹명을 추출하는 함수
+        // 예: "댓글240_제니_1.jpg" -> "댓글240_제니"
+        const getBaseName = (filename) => {
+            if (!filename) return null;
+            return filename.replace(/_\d+\.(jpg|png|gif|jpeg|webp)$/i, '');
+        };
+
         group.messages.forEach(msg => {
             const lastMsg = processedMessages[processedMessages.length - 1];
+            
+            // 현재 메시지의 이미지 베이스 이름
             const currentBaseName = msg.img ? getBaseName(msg.img) : null;
+            
+            // 직전 메시지의 이미지 베이스 이름 (이미지 그룹인 경우 첫 번째 이미지 기준)
             const lastBaseName = (lastMsg && lastMsg.images) ? getBaseName(lastMsg.images[0]) : null;
 
-            if (lastMsg && lastMsg.id === msg.id && lastMsg.sender === msg.sender && msg.img && lastMsg.images && lastMsg.images.length < 5 && currentBaseName === lastBaseName) {
+            // [조건]
+            // 1. 직전 메시지가 있고, 보낸 사람이 같아야 함
+            // 2. 현재 메시지가 이미지여야 함
+            // 3. 직전 메시지도 이미지(배열)여야 함
+            // 4. ★핵심★: 파일명의 베이스 이름이 같아야 함 (240끼리, 241끼리)
+            // 5. 이미지 최대 개수 제한 (예: 5개 미만일 때만 합치기)
+            if (lastMsg && 
+                lastMsg.sender === msg.sender && 
+                msg.img && 
+                lastMsg.images && 
+                currentBaseName === lastBaseName && 
+                lastMsg.images.length < 5) {
+                
+                // 조건이 맞으면 같은 말풍선에 이미지 추가
                 lastMsg.images.push(msg.img);
+                // 텍스트가 있다면 이어 붙이기
                 if(msg.text) lastMsg.text = lastMsg.text ? lastMsg.text + "\n" + msg.text : msg.text;
+                
             } else {
+                // 조건이 다르면 새로운 말풍선 생성
                 const newMsg = { ...msg };
                 if (newMsg.img) {
                     newMsg.images = [newMsg.img];
@@ -133,6 +161,8 @@ function renderChat(data) {
                 processedMessages.push(newMsg);
             }
         });
+
+        // ... 이하 렌더링 코드는 동일 ...
 
         // 메시지 렌더링
         processedMessages.forEach(msg => {
@@ -383,3 +413,4 @@ function saveAsPDF(receiverName) {
         toggleLoading(false);
     });
 }
+
