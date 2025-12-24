@@ -332,42 +332,52 @@ function saveAsImage(receiverName) {
     });
 }
 
-// 개별 PDF 저장 (수정됨: 긴 내용 자동 페이지 분할)
+// 개별 PDF 저장 (모바일 메모리 최적화 + 페이지 분할)
 function saveAsPDF(receiverName) {
     toggleLoading(true, "PDF 생성 중...");
 
-    // 임시 래퍼 생성 (헤더 포함)
+    // 임시 래퍼 생성
     const wrapper = createCaptureWrapper(receiverName);
     if (!wrapper) {
         toggleLoading(false);
         return alert('영역을 찾을 수 없습니다.');
     }
 
-    html2canvas(wrapper, captureOptions).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
+    // 모바일 감지
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // [최적화 1] 모바일이면 해상도(Scale)를 낮춤 (2 -> 1.5)
+    // PC는 2배율(선명함), 모바일은 1.5배율(메모리 절약)
+    const currentOptions = {
+        ...captureOptions,
+        scale: isMobile ? 1.5 : 2 
+    };
+
+    html2canvas(wrapper, currentOptions).then(canvas => {
+        // [최적화 2] PNG 대신 JPEG 사용 (용량 대폭 감소)
+        // 투명 배경이 검게 나올 수 있으므로 배경색 흰색 보장 필요(이미 wrapper에 적용됨)
+        const imgData = canvas.toDataURL('image/jpeg', 0.95); // 퀄리티 0.95
         
-        // A4 기준 치수 (mm)
-        const imgWidth = 210; 
-        const pageHeight = 297; 
+        const imgWidth = 210; // A4 너비 (mm)
+        const pageHeight = 297; // A4 높이 (mm)
         
-        // 캔버스 이미지를 A4 너비에 맞췄을 때의 높이 계산
         const imgHeight = canvas.height * imgWidth / canvas.width;
         
-        let heightLeft = imgHeight; // 출력해야 할 남은 높이
-        let position = 0; // 이미지 그리기 시작 위치
+        let heightLeft = imgHeight;
+        let position = 0;
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
 
-        // 첫 번째 페이지 출력
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        // 첫 페이지
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
 
-        // 남은 내용이 있다면 페이지를 추가하며 계속 출력
+        // 추가 페이지
         while (heightLeft > 0) {
-            position -= pageHeight; // 이미지를 위로 끌어올림 (다음 페이지 내용이 보이게)
+            position -= pageHeight;
             pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
             heightLeft -= pageHeight;
         }
 
@@ -377,8 +387,8 @@ function saveAsPDF(receiverName) {
         document.body.removeChild(wrapper);
         toggleLoading(false);
     }).catch(err => {
-        console.error(err);
-        alert('저장 실패');
+        console.error("PDF 생성 오류:", err);
+        alert('저장에 실패했습니다. 내용이 너무 길어 메모리가 부족할 수 있습니다.');
         if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
         toggleLoading(false);
     });
