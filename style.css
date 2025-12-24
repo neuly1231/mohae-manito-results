@@ -350,3 +350,80 @@ footer {
         font-size: 1.4rem;
     }
 }
+
+/* ... 기존 내용 유지 ... */
+
+/* === [수정/추가] 이미지 말풍선 그리드 처리 === */
+
+/* 이미지 말풍선 기본 */
+.image-bubble {
+    padding: 0;
+    background-color: transparent;
+    box-shadow: none;
+    border-radius: 16px;
+    overflow: hidden; /* 모서리 둥글게 유지 */
+    width: 100%;
+    max-width: 300px; /* 최대 너비 고정 */
+}
+
+/* 그리드 컨테이너 */
+.image-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px; /* 이미지 사이 간격 */
+    width: 100%;
+}
+
+.img-item {
+    position: relative;
+    overflow: hidden;
+    /* Flex 아이템 기본 설정 */
+    flex-grow: 1; 
+    flex-shrink: 1;
+}
+
+.image-grid img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 비율 유지하며 꽉 채우기 */
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0; /* 내부 이미지는 둥근모서리 제거 (부모가 처리) */
+}
+
+/* === 개수별 레이아웃 === */
+
+/* 1장: 꽉 채움 */
+.image-group-1 .image-grid .img-item {
+    width: 100%;
+}
+
+/* 2장: 세로로 2분할 (1줄에 2개) */
+.image-group-2 .image-grid .img-item {
+    width: calc(50% - 1px); /* gap 고려 */
+    aspect-ratio: 1 / 1; /* 정사각형 비율 강제 (선택사항) */
+}
+
+/* 3장: 1줄에 3개 */
+.image-group-3 .image-grid .img-item {
+    width: calc(33.33% - 1.34px);
+    aspect-ratio: 1 / 1;
+}
+
+/* 4장: 2x2 격자 */
+.image-group-4 .image-grid .img-item {
+    width: calc(50% - 1px);
+    aspect-ratio: 1 / 1;
+}
+
+/* 5장: 위 2개(50%), 아래 3개(33%) */
+.image-group-5 .image-grid .img-item {
+    width: calc(33.33% - 1.34px); /* 기본 3등분 */
+    aspect-ratio: 1 / 1;
+}
+/* 5장일 때 첫 번째, 두 번째 이미지는 50%로 설정 */
+.image-group-5 .image-grid .img-item:nth-child(1),
+.image-group-5 .image-grid .img-item:nth-child(2) {
+    width: calc(50% - 1px);
+}
