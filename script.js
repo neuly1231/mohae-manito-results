@@ -332,63 +332,84 @@ function saveAsImage(receiverName) {
     });
 }
 
-// 개별 PDF 저장 (모바일 메모리 최적화 + 페이지 분할)
+// 개별 PDF 저장 (모바일 메모리 강제 최적화)
 function saveAsPDF(receiverName) {
-    toggleLoading(true, "PDF 생성 중...");
+    // 1. 라이브러리 로드 확인
+    if (!window.jspdf) {
+        alert('PDF 라이브러리가 로드되지 않았습니다. 페이지를 새로고침 해주세요.');
+        return;
+    }
 
-    // 임시 래퍼 생성
+    toggleLoading(true, "PDF 변환 중...");
+
+    // 2. 임시 래퍼 생성
     const wrapper = createCaptureWrapper(receiverName);
     if (!wrapper) {
         toggleLoading(false);
         return alert('영역을 찾을 수 없습니다.');
     }
 
-    // 모바일 감지
+    // 3. 모바일 여부 및 긴 내용 체크
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const contentHeight = wrapper.offsetHeight;
+    
+    // [핵심] 모바일이거나 내용이 너무 길면(5000px 이상) 화질을 1배율로 낮춤
+    // 기존 1.5배도 길면 터질 수 있어서 1.0으로 변경
+    let finalScale = 2; 
+    if (isMobile) {
+        finalScale = contentHeight > 5000 ? 1 : 1.5; 
+    }
 
-    // [최적화 1] 모바일이면 해상도(Scale)를 낮춤 (2 -> 1.5)
-    // PC는 2배율(선명함), 모바일은 1.5배율(메모리 절약)
     const currentOptions = {
         ...captureOptions,
-        scale: isMobile ? 1.5 : 2 
+        scale: finalScale,
+        useCORS: true,
+        allowTaint: true,
     };
 
     html2canvas(wrapper, currentOptions).then(canvas => {
-        // [최적화 2] PNG 대신 JPEG 사용 (용량 대폭 감소)
-        // 투명 배경이 검게 나올 수 있으므로 배경색 흰색 보장 필요(이미 wrapper에 적용됨)
-        const imgData = canvas.toDataURL('image/jpeg', 0.95); // 퀄리티 0.95
-        
-        const imgWidth = 210; // A4 너비 (mm)
-        const pageHeight = 297; // A4 높이 (mm)
-        
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        
-        let heightLeft = imgHeight;
-        let position = 0;
+        try {
+            // [핵심] JPEG 압축률을 0.95 -> 0.8로 낮춰서 용량 확보
+            const imgData = canvas.toDataURL('image/jpeg', 0.8);
+            
+            const imgWidth = 210; // A4 너비 (mm)
+            const pageHeight = 297; // A4 높이 (mm)
+            
+            // 이미지 비율에 맞춘 높이 계산
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            let heightLeft = imgHeight;
+            let position = 0;
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
 
-        // 첫 페이지
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-
-        // 추가 페이지
-        while (heightLeft > 0) {
-            position -= pageHeight;
-            pdf.addPage();
+            // 첫 페이지
             pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
             heightLeft -= pageHeight;
+
+            // 내용이 남았다면 페이지 추가 (루프)
+            while (heightLeft > 0) {
+                position -= pageHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            pdf.save(`마니또결과_${receiverName}.pdf`);
+            
+        } catch (e) {
+            console.error(e);
+            alert('PDF 생성 중 오류가 발생했습니다. (메모리 부족 가능성)\nPC에서 시도하거나 PNG로 저장해주세요.');
         }
 
-        pdf.save(`마니또결과_${receiverName}.pdf`);
-
         // 뒷정리
-        document.body.removeChild(wrapper);
+        if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
         toggleLoading(false);
+
     }).catch(err => {
-        console.error("PDF 생성 오류:", err);
-        alert('저장에 실패했습니다. 내용이 너무 길어 메모리가 부족할 수 있습니다.');
+        console.error("html2canvas error:", err);
+        alert('이미지 캡처 단계에서 실패했습니다.');
         if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
         toggleLoading(false);
     });
