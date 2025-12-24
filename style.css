@@ -645,3 +645,29 @@ footer {
         margin: 0 15px 0 15px;
     }
 }
+
+/* 동영상 말풍선 스타일 */
+.video-bubble {
+    padding: 0;
+    background-color: transparent; /* 배경 투명 */
+    max-width: 300px; /* 이미지와 너비 맞춤 */
+    border-radius: 16px;
+    overflow: hidden; /* 둥근 모서리 유지 */
+    margin-bottom: 5px;
+}
+
+.chat-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    outline: none;
+    border-radius: inherit; /* 부모 둥글기 상속 */
+    background-color: #000; /* 로딩 전 검은 배경 */
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+    .video-bubble {
+        max-width: 240px; /* 모바일에서는 조금 작게 */
+    }
+}
