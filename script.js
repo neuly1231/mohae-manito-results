@@ -261,7 +261,7 @@ function setupImageModal() {
 
 // === 저장 관련 설정 ===
 const captureOptions = {
-    scale: 3,
+    scale: 2,
     useCORS: true,
     backgroundColor: "#cad1dc",
     logging: false,
@@ -384,4 +384,5 @@ function saveAsImage(receiverName) {
         link.click();
     });
 }
+
 
