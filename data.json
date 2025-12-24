@@ -181,7 +181,7 @@
   },
   {
     "receiver": "제니",
-    "giver": null,
+    "giver": "",
     "card_img": "마니또_모해남고생.png",
     "messages": [
       { "id": 153, "sender": "other", "name": "정수", "text": "", "img": "댓글134_제니.jpg" },
@@ -397,7 +397,7 @@
       { "id": 268, "sender": "manito", "text": "페인트통 잘못 처부넜다 미안하다", "img": "댓글245_제니.png" },
       { "id": 269, "sender": "receiver", "text": "히읗 안 채워진 것 존나 거슬려" },
       { "id": 270, "sender": "receiver", "text": "갔는데 없으면 뒤질 줄 알아" },
-      { "id": 271, "sender": "manito", "text": "의현아 나 쩔지", "img": "댓글255_제니.png" },
+      { "id": 271, "sender": "manito", "text": "의현아 나 쩔지", "img": "댓글255_제니.jpg" },
       { "id": 272, "sender": "receiver", "text": "라면 다섯 봉지 번들로 하나 끓여 주세요 슈만 먹이지 말고" },
       { "id": 273, "sender": "manito", "text": "의현아 피크민", "img": "댓글256_제니.gif" },
       { "id": 274, "sender": "manito", "text": "의현아 이거 웃기당", "video": "동영상1.mp4" },
