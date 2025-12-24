@@ -94,27 +94,16 @@ function renderChat(data) {
             ${cardHtml}
         `;
 
-        // [수정됨] 제니가 아닐 때만 저장 버튼 생성
+        // 제니가 아닐 때만 'PNG 저장' 버튼 생성
         if (group.receiver !== '제니') {
             const btnArea = document.createElement('div');
             btnArea.className = 'save-btn-area';
             
-            // 1. PDF 버튼 (직접 다운로드 링크로 변경)
-            // src/pdf 폴더 안에 "이름.pdf" 파일이 있어야 합니다.
-            const pdfBtn = document.createElement('a');
-            pdfBtn.className = 'btn-save';
-            pdfBtn.innerHTML = 'PDF';
-            pdfBtn.href = `src/pdf/${group.receiver}.pdf`; 
-            pdfBtn.download = `마니또결과_${group.receiver}.pdf`; // 다운로드될 파일명
-            pdfBtn.style.textDecoration = 'none'; // 링크 밑줄 제거
-
-            // 2. PNG 버튼 (기존 캡처 기능 유지)
             const pngBtn = document.createElement('button');
             pngBtn.className = 'btn-save';
-            pngBtn.innerHTML = 'PNG';
+            pngBtn.innerHTML = 'PNG 저장'; // 버튼 텍스트를 조금 더 명확하게 변경했습니다
             pngBtn.onclick = () => saveAsImage(group.receiver);
 
-            btnArea.appendChild(pdfBtn);
             btnArea.appendChild(pngBtn);
             header.appendChild(btnArea);
         }
@@ -393,52 +382,5 @@ function saveAsImage(receiverName) {
         link.download = `마니또결과_${receiverName}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
-    });
-}
-
-// 개별 PDF 저장
-function saveAsPDF(receiverName) {
-    toggleLoading(true, "PDF 생성 중...");
-
-    const wrapper = createCaptureWrapper(receiverName);
-    if (!wrapper) {
-        toggleLoading(false);
-        return alert('영역을 찾을 수 없습니다.');
-    }
-    
-    // ★핵심 수정: PDF 저장 시에도 이미지 로딩 대기
-    waitForImages(wrapper).then(() => {
-        html2canvas(wrapper, captureOptions).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const imgWidth = 210; 
-            const pageHeight = 297; 
-            const imgHeight = canvas.height * imgWidth / canvas.width;
-            
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            while (heightLeft > 0) {
-                position -= pageHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
-
-            pdf.save(`마니또결과_${receiverName}.pdf`);
-            
-            document.body.removeChild(wrapper);
-            toggleLoading(false);
-        }).catch(err => {
-            console.error(err);
-            alert('저장 실패');
-            if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
-            toggleLoading(false);
-        });
     });
 }
