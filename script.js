@@ -94,27 +94,34 @@ function renderChat(data) {
             ${cardHtml}
         `;
 
-        // 개별 저장 버튼
-        const btnArea = document.createElement('div');
-        btnArea.className = 'save-btn-area';
-        
-        const pngBtn = document.createElement('button');
-        pngBtn.className = 'btn-save';
-        pngBtn.innerHTML = 'PNG';
-        pngBtn.onclick = () => saveAsImage(group.receiver);
+        // [수정됨] 제니가 아닐 때만 저장 버튼 생성
+        if (group.receiver !== '제니') {
+            const btnArea = document.createElement('div');
+            btnArea.className = 'save-btn-area';
+            
+            // 1. PDF 버튼 (직접 다운로드 링크로 변경)
+            // src/pdf 폴더 안에 "이름.pdf" 파일이 있어야 합니다.
+            const pdfBtn = document.createElement('a');
+            pdfBtn.className = 'btn-save';
+            pdfBtn.innerHTML = 'PDF';
+            pdfBtn.href = `src/pdf/${group.receiver}.pdf`; 
+            pdfBtn.download = `마니또결과_${group.receiver}.pdf`; // 다운로드될 파일명
+            pdfBtn.style.textDecoration = 'none'; // 링크 밑줄 제거
 
-        const pdfBtn = document.createElement('button');
-        pdfBtn.className = 'btn-save';
-        pdfBtn.innerHTML = 'PDF';
-        pdfBtn.onclick = () => saveAsPDF(group.receiver);
+            // 2. PNG 버튼 (기존 캡처 기능 유지)
+            const pngBtn = document.createElement('button');
+            pngBtn.className = 'btn-save';
+            pngBtn.innerHTML = 'PNG';
+            pngBtn.onclick = () => saveAsImage(group.receiver);
 
-        btnArea.appendChild(pdfBtn);
-        btnArea.appendChild(pngBtn);
-        header.appendChild(btnArea);
+            btnArea.appendChild(pdfBtn);
+            btnArea.appendChild(pngBtn);
+            header.appendChild(btnArea);
+        }
 
         section.appendChild(header);
 
-        // 메시지 로직
+        // 메시지 로직 
         const processedMessages = [];
         
         // 파일명에서 _숫자.확장자 를 제거하여 그룹명을 추출하는 함수
@@ -162,8 +169,6 @@ function renderChat(data) {
             }
         });
 
-        // ... 이하 렌더링 코드는 동일 ...
-
         // 메시지 렌더링
         processedMessages.forEach(msg => {
             const row = document.createElement('div');
@@ -195,6 +200,7 @@ function renderChat(data) {
                 const contentWrapper = document.createElement('div');
                 contentWrapper.className = 'msg-content-wrapper';
 
+                // 1. 이미지 처리
                 if (msg.images && msg.images.length > 0) {
                     const imgBubble = document.createElement('div');
                     imgBubble.className = `bubble image-bubble image-group-${msg.images.length}`;
@@ -204,6 +210,16 @@ function renderChat(data) {
                     });
                     imgBubble.innerHTML = `<div class="image-grid">${imgsHtml}</div>`;
                     contentWrapper.appendChild(imgBubble);
+                }
+
+                // 2. 동영상 처리
+                if (msg.video) {
+                    const videoBubble = document.createElement('div');
+                    videoBubble.className = 'bubble video-bubble';
+                    videoBubble.innerHTML = `
+                        <video src="src/manito_asset/${msg.video}" controls playsinline class="chat-video"></video>
+                    `;
+                    contentWrapper.appendChild(videoBubble);
                 }
 
                 if (msg.text) {
@@ -259,16 +275,32 @@ const captureOptions = {
     scale: 2,
     useCORS: true,
     backgroundColor: "#cad1dc",
-    logging: false
+    logging: false,
+    allowTaint: true // 추가: CORS 문제 완화
 };
 
 /**
- * 캡처를 위한 임시 래퍼(Wrapper)를 생성하는 함수
- * CSS 상속 문제(header h1 등)를 해결하기 위해 가짜 header 태그를 생성합니다.
+ * 이미지 로딩을 기다리는 헬퍼 함수
+ */
+function waitForImages(element) {
+    const images = element.querySelectorAll('img');
+    const promises = Array.from(images).map(img => {
+        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+        return new Promise(resolve => {
+            img.onload = () => resolve();
+            img.onerror = () => resolve(); // 에러나도 진행
+        });
+    });
+    // 모든 이미지가 로드되거나, 최대 3초가 지나면 진행 (무한 로딩 방지)
+    const timeout = new Promise(resolve => setTimeout(resolve, 3000));
+    return Promise.race([Promise.all(promises), timeout]);
+}
+
+/**
+ * 캡처를 위한 임시 래퍼(Wrapper) 생성
  */
 function createCaptureWrapper(receiverName) {
     const originalContent = document.getElementById(`target-${receiverName}`);
-    // [수정] header 태그가 아닌 내용물(title-area)만 선택
     const originalTitleArea = document.querySelector('.header-title-area');
 
     if (!originalContent || !originalTitleArea) return null;
@@ -276,21 +308,20 @@ function createCaptureWrapper(receiverName) {
     // 1. 임시 컨테이너 생성
     const wrapper = document.createElement('div');
     
-    // 스타일 복사
-    wrapper.style.position = 'fixed';
+    // 스타일 수정: 화면 밖으로 보내지 않고, 사용자 눈에만 안 보이게 맨 뒤로 배치
+    wrapper.style.position = 'absolute';
     wrapper.style.top = '0';
-    wrapper.style.left = '-10000px'; 
-    wrapper.style.zIndex = '-9999';
+    wrapper.style.left = '0';
+    wrapper.style.zIndex = '-9999'; // 맨 뒤로
     wrapper.style.width = getComputedStyle(document.getElementById('app')).width; 
     wrapper.style.maxWidth = '900px'; 
     wrapper.style.backgroundColor = '#cad1dc'; 
     wrapper.style.paddingBottom = '40px';
+    wrapper.style.visibility = 'visible'; // visibility: hidden은 캡처 안될 수 있음
 
-    // 2. [핵심 수정] 가짜 <header> 태그 생성 (CSS 'header h1' 적용을 위해)
+    // 2. 가짜 헤더 생성
     const dummyHeader = document.createElement('header');
-    
-    // 헤더 스타일 강제 적용 (배경 투명도 문제 방지 및 위치 초기화)
-    dummyHeader.style.position = 'static'; // sticky 제거
+    dummyHeader.style.position = 'static';
     dummyHeader.style.width = '100%';
     dummyHeader.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
     dummyHeader.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
@@ -298,35 +329,38 @@ function createCaptureWrapper(receiverName) {
     dummyHeader.style.textAlign = 'center';
     dummyHeader.style.display = 'block';
 
-    // 3. 타이틀 영역 복제 및 가짜 헤더에 삽입
+    // 3. 타이틀 복제
     const titleClone = originalTitleArea.cloneNode(true);
-    // 타이틀 영역의 마진/패딩 보정 (필요시)
     titleClone.style.margin = '0';
-    titleClone.style.paddingBottom = '20px'; // 하단 여백 확보
-
+    titleClone.style.paddingBottom = '20px';
     dummyHeader.appendChild(titleClone);
     
-    // 4. 채팅 내용 복제
+    // 4. 내용 복제
     const contentClone = originalContent.cloneNode(true);
-
-    // 저장 버튼 제거
     const btnArea = contentClone.querySelector('.save-btn-area');
     if (btnArea) btnArea.remove();
 
-    // 5. 컨테이너에 조립
-    wrapper.appendChild(dummyHeader); // 가짜 헤더 추가
+    // 동영상 -> 텍스트 변환
+    contentClone.querySelectorAll('.video-bubble').forEach(bubble => {
+        bubble.innerHTML = '(동영상)';
+        bubble.classList.remove('video-bubble');
+        bubble.classList.add('text-bubble');
+        bubble.style.color = '#888'; 
+        bubble.style.fontStyle = 'italic';
+        bubble.style.textAlign = 'center';
+    });
+
+    wrapper.appendChild(dummyHeader);
     wrapper.appendChild(contentClone);
-    
     document.body.appendChild(wrapper);
 
     return wrapper;
 }
 
-// 공통 캡처 실행 함수 (폰트 로딩 대기 포함)
+// 공통 캡처 실행 함수 (이미지 로딩 대기 포함)
 function processCapture(receiverName, callback) {
-    toggleLoading(true, "생성 준비 중...");
+    toggleLoading(true, "이미지 처리 중...");
 
-    // 웹폰트 로딩이 완료될 때까지 대기
     document.fonts.ready.then(() => {
         const wrapper = createCaptureWrapper(receiverName);
         if (!wrapper) {
@@ -334,21 +368,21 @@ function processCapture(receiverName, callback) {
             return alert('영역을 찾을 수 없습니다.');
         }
 
-        // 약간의 렌더링 시간을 줌 (0.1초)
-        setTimeout(() => {
+        // ★핵심 수정: 이미지가 다 뜰 때까지 기다림
+        waitForImages(wrapper).then(() => {
             html2canvas(wrapper, captureOptions)
                 .then(canvas => {
                     callback(canvas);
-                    document.body.removeChild(wrapper);
+                    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
                     toggleLoading(false);
                 })
                 .catch(err => {
                     console.error(err);
-                    alert('저장 실패');
+                    alert('저장 실패: ' + err.message);
                     if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
                     toggleLoading(false);
                 });
-        }, 100);
+        });
     });
 }
 
@@ -362,55 +396,49 @@ function saveAsImage(receiverName) {
     });
 }
 
-// 개별 PDF 저장 (수정됨: 긴 내용 자동 페이지 분할)
+// 개별 PDF 저장
 function saveAsPDF(receiverName) {
     toggleLoading(true, "PDF 생성 중...");
 
-    // 임시 래퍼 생성 (헤더 포함)
     const wrapper = createCaptureWrapper(receiverName);
     if (!wrapper) {
         toggleLoading(false);
         return alert('영역을 찾을 수 없습니다.');
     }
+    
+    // ★핵심 수정: PDF 저장 시에도 이미지 로딩 대기
+    waitForImages(wrapper).then(() => {
+        html2canvas(wrapper, captureOptions).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = 210; 
+            const pageHeight = 297; 
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            let heightLeft = imgHeight;
+            let position = 0;
 
-    html2canvas(wrapper, captureOptions).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        
-        // A4 기준 치수 (mm)
-        const imgWidth = 210; 
-        const pageHeight = 297; 
-        
-        // 캔버스 이미지를 A4 너비에 맞췄을 때의 높이 계산
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        
-        let heightLeft = imgHeight; // 출력해야 할 남은 높이
-        let position = 0; // 이미지 그리기 시작 위치
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
-
-        // 첫 번째 페이지 출력
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-
-        // 남은 내용이 있다면 페이지를 추가하며 계속 출력
-        while (heightLeft > 0) {
-            position -= pageHeight; // 이미지를 위로 끌어올림 (다음 페이지 내용이 보이게)
-            pdf.addPage();
             pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
             heightLeft -= pageHeight;
-        }
 
-        pdf.save(`마니또결과_${receiverName}.pdf`);
+            while (heightLeft > 0) {
+                position -= pageHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
 
-        // 뒷정리
-        document.body.removeChild(wrapper);
-        toggleLoading(false);
-    }).catch(err => {
-        console.error(err);
-        alert('저장 실패');
-        if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
-        toggleLoading(false);
+            pdf.save(`마니또결과_${receiverName}.pdf`);
+            
+            document.body.removeChild(wrapper);
+            toggleLoading(false);
+        }).catch(err => {
+            console.error(err);
+            alert('저장 실패');
+            if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+            toggleLoading(false);
+        });
     });
 }
-
